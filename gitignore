@@ -1,0 +1,36 @@
+# JetBrains IDEs (IntelliJ, CLion, WebStorm, etc.)
+.idea/
+*.iml
+out/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment variables and secrets
+.env
+.env.local
+.env.*.local
+
+# --- Backend (Java / Maven / Spring Boot) ---
+backend/target/
+backend/*.log
+backend/HELP.md
+
+# --- Frontend (Node / Next.js) ---
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/*.log
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# --- Agent (C++ / CMake) ---
+agent/build/
+agent/cmake-build-*/
+agent/*.o
+agent/*.obj
+agent/*.exe
+agent/*.out
