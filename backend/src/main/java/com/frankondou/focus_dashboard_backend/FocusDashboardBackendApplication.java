@@ -24,5 +24,3 @@ class HelloController {
         return "Hello from the backend";
     }
 }
-
-System.out.println()
