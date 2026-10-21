@@ -1,9 +1,10 @@
 package com.frankondou.focus.service;
 
-import com.frankondou.focus.exception.UserNotFoundException;
 import com.frankondou.focus.entity.User;
+import com.frankondou.focus.exception.UserNotFoundException;
 import com.frankondou.focus.repository.UserRepository;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -27,23 +28,28 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User getUserById(UUID userId) {
-        return userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+    public User getUserById(UUID id) {
+        return userRepository.findById(id)
+                .orElseThrow(UserNotFoundException::new);
     }
 
     // Partial update: only fields that were sent get changed
     @Override
     public User updateUser(UUID id, User updates) {
-        // TODO: .get() crashes with a 500 if the user doesn't exist
         User existing = getUserById(id);
 
-        if (updates.getEmail() != null && !updates.getEmail().isBlank()) {
+        if (updates.getEmail() != null
+                && !updates.getEmail().isBlank()) {
             existing.setEmail(updates.getEmail());
         }
-        if (updates.getDisplayName() != null && !updates.getDisplayName().isBlank()) {
+
+        if (updates.getDisplayName() != null
+                && !updates.getDisplayName().isBlank()) {
             existing.setDisplayName(updates.getDisplayName());
         }
-        if (updates.getTimezone() != null && !updates.getTimezone().isBlank()) {
+
+        if (updates.getTimezone() != null
+                && !updates.getTimezone().isBlank()) {
             existing.setTimezone(updates.getTimezone());
         }
 
@@ -52,6 +58,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void deleteUser(UUID id) {
-        userRepository.deleteById(id);
+        User existing = getUserById(id);
+        userRepository.delete(existing);
     }
 }

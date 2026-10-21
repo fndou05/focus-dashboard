@@ -1,6 +1,8 @@
 package com.frankondou.focus.entity;
 
 import jakarta.persistence.*;
+
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -11,18 +13,20 @@ public class User {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "email", unique = true, nullable = false, length = 320)
+    @Column(unique = true, nullable = false, length = 320)
     private String email;
 
-    @Column(name = "display_name", nullable = false, length = 16)
+    @Column(nullable = false, length = 16)
     private String displayName;
 
-    @Column(name = "timezone", nullable = false, length = 64)
+    @Column(nullable = false, length = 64)
     private String timezone;
 
-    // Required by JPA
-    public User() {
-    }
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Semester> semesters;
+
+    // Constructors
+    public User() {}
 
     public User(String email, String displayName, String timezone) {
         this.email = email;
@@ -30,32 +34,16 @@ public class User {
         this.timezone = timezone;
     }
 
-    public UUID getId() {
-        return id;
-    }
+    // Getters and Setters
+    public UUID getId() { return id; }
+    public String getEmail() { return email; }
+    public String getDisplayName() { return displayName; }
+    public String getTimezone() { return timezone; }
 
-    public String getEmail() {
-        return email;
-    }
+    public List<Semester> getSemesters() { return semesters; }
+    public void setSemesters(List<Semester> semesters) { this.semesters = semesters; }
 
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    public String getTimezone() {
-        return timezone;
-    }
-
-    // No setId: the database generates it
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
-    }
-
-    public void setTimezone(String timezone) {
-        this.timezone = timezone;
-    }
+    public void setEmail(String email) { this.email = email; }
+    public void setDisplayName(String displayName) { this.displayName = displayName; }
+    public void setTimezone(String timezone) { this.timezone = timezone; }
 }
