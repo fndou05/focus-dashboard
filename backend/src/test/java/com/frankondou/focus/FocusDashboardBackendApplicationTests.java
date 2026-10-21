@@ -1,4 +1,4 @@
-package com.frankondou.focus_dashboard_backend;
+package com.frankondou.focus;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
