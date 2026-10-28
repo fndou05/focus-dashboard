@@ -1,9 +1,12 @@
 package com.frankondou.focus.controller;
 
+import com.frankondou.focus.dto.StartStudySessionRequest;
+import com.frankondou.focus.dto.StudySessionResponse;
 import com.frankondou.focus.entity.StudySession;
 import com.frankondou.focus.service.StudySessionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,23 +21,28 @@ public class StudySessionController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/subjects/{subjectId}/study-sessions")
-    public StudySession startStudySession(@PathVariable("subjectId") UUID subjectId, @RequestBody StudySession session) {
-        return studySessionService.startStudySession(subjectId, session);
+    public StudySessionResponse startStudySession(@PathVariable("subjectId") UUID subjectId,
+                                                  @RequestBody @Valid StartStudySessionRequest request) {
+        StudySession session = new StudySession();
+        session.setMode(request.mode());
+        return StudySessionResponse.from(studySessionService.startStudySession(subjectId, session));
     }
 
     @PatchMapping("/study-sessions/{id}/end")
-    public StudySession endStudySession(@PathVariable("id") UUID id) {
-        return studySessionService.endStudySession(id);
+    public StudySessionResponse endStudySession(@PathVariable("id") UUID id) {
+        return StudySessionResponse.from(studySessionService.endStudySession(id));
     }
 
     @GetMapping("/subjects/{subjectId}/study-sessions")
-    public List<StudySession> getStudySessionsBySubjectId(@PathVariable("subjectId") UUID subjectId) {
-        return studySessionService.getStudySessionsBySubjectId(subjectId);
+    public List<StudySessionResponse> getStudySessionsBySubjectId(@PathVariable("subjectId") UUID subjectId) {
+        return studySessionService.getStudySessionsBySubjectId(subjectId).stream()
+                .map(StudySessionResponse::from)
+                .toList();
     }
 
     @GetMapping("/study-sessions/{id}")
-    public StudySession getStudySessionById(@PathVariable("id") UUID id) {
-        return studySessionService.getStudySessionById(id);
+    public StudySessionResponse getStudySessionById(@PathVariable("id") UUID id) {
+        return StudySessionResponse.from(studySessionService.getStudySessionById(id));
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)

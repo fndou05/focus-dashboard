@@ -1,10 +1,14 @@
 package com.frankondou.focus.service;
 
 import com.frankondou.focus.entity.User;
+import com.frankondou.focus.exception.BadRequestException;
+import com.frankondou.focus.exception.ConflictException;
 import com.frankondou.focus.exception.UserNotFoundException;
 import com.frankondou.focus.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.DateTimeException;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,6 +23,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User createUser(User user) {
+        validateTimezone(user.getTimezone());
+        if (userRepository.existsByEmail(user.getEmail())) {
+            throw new ConflictException("Email already in use");
+        }
         return userRepository.save(user);
     }
 
@@ -38,18 +46,11 @@ public class UserServiceImpl implements UserService {
     public User updateUser(UUID id, User updates) {
         User existing = getUserById(id);
 
-        if (updates.getEmail() != null
-                && !updates.getEmail().isBlank()) {
-            existing.setEmail(updates.getEmail());
-        }
-
-        if (updates.getDisplayName() != null
-                && !updates.getDisplayName().isBlank()) {
+        if (updates.getDisplayName() != null && !updates.getDisplayName().isBlank()) {
             existing.setDisplayName(updates.getDisplayName());
         }
-
-        if (updates.getTimezone() != null
-                && !updates.getTimezone().isBlank()) {
+        if (updates.getTimezone() != null && !updates.getTimezone().isBlank()) {
+            validateTimezone(updates.getTimezone());
             existing.setTimezone(updates.getTimezone());
         }
 
@@ -60,5 +61,13 @@ public class UserServiceImpl implements UserService {
     public void deleteUser(UUID id) {
         User existing = getUserById(id);
         userRepository.delete(existing);
+    }
+
+    private void validateTimezone(String timezone) {
+        try {
+            ZoneId.of(timezone);
+        } catch (DateTimeException e) {
+            throw new BadRequestException("Invalid timezone: " + timezone);
+        }
     }
 }

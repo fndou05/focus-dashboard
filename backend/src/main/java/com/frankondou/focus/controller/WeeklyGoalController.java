@@ -1,9 +1,12 @@
 package com.frankondou.focus.controller;
 
+import com.frankondou.focus.dto.CreateWeeklyGoalRequest;
+import com.frankondou.focus.dto.WeeklyGoalResponse;
 import com.frankondou.focus.entity.WeeklyGoal;
 import com.frankondou.focus.service.WeeklyGoalService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,18 +21,24 @@ public class WeeklyGoalController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/subjects/{subjectId}/weekly-goals")
-    public WeeklyGoal createWeeklyGoal(@PathVariable("subjectId") UUID subjectId, @RequestBody WeeklyGoal weeklyGoal) {
-        return weeklyGoalService.createWeeklyGoal(subjectId, weeklyGoal);
+    public WeeklyGoalResponse createWeeklyGoal(@PathVariable("subjectId") UUID subjectId,
+                                               @RequestBody @Valid CreateWeeklyGoalRequest request) {
+        WeeklyGoal goal = new WeeklyGoal();
+        goal.setTargetHours(request.targetHours());
+        goal.setEffectiveFrom(request.effectiveFrom());
+        return WeeklyGoalResponse.from(weeklyGoalService.createWeeklyGoal(subjectId, goal));
     }
 
     @GetMapping("/subjects/{subjectId}/weekly-goals")
-    public List<WeeklyGoal> getWeeklyGoalsBySubjectId(@PathVariable("subjectId") UUID subjectId) {
-        return weeklyGoalService.getWeeklyGoalsBySubjectId(subjectId);
+    public List<WeeklyGoalResponse> getWeeklyGoalsBySubjectId(@PathVariable("subjectId") UUID subjectId) {
+        return weeklyGoalService.getWeeklyGoalsBySubjectId(subjectId).stream()
+                .map(WeeklyGoalResponse::from)
+                .toList();
     }
 
     @GetMapping("/weekly-goals/{id}")
-    public WeeklyGoal getWeeklyGoalById(@PathVariable("id") UUID id) {
-        return weeklyGoalService.getWeeklyGoalById(id);
+    public WeeklyGoalResponse getWeeklyGoalById(@PathVariable("id") UUID id) {
+        return WeeklyGoalResponse.from(weeklyGoalService.getWeeklyGoalById(id));
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
