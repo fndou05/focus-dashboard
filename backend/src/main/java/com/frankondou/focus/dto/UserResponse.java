@@ -2,10 +2,11 @@ package com.frankondou.focus.dto;
 
 import com.frankondou.focus.entity.User;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.UUID;
 
 public record UserResponse(UUID id, String email, String displayName, String timezone,
-                           BigDecimal priorCredits, BigDecimal priorGpa) {
+                           BigDecimal priorCredits, BigDecimal priorGpa, Instant onboardingCompletedAt) {
 
     public static UserResponse from(User user) {
         return new UserResponse(
@@ -14,7 +15,8 @@ public record UserResponse(UUID id, String email, String displayName, String tim
                 user.getDisplayName(),
                 user.getTimezone(),
                 user.getPriorCredits(),
-                user.getPriorGpa()
+                user.getPriorGpa(),
+                user.getOnboardingCompletedAt()
         );
     }
 }

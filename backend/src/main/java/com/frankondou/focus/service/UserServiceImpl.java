@@ -12,7 +12,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.DateTimeException;
+import java.time.Instant;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
@@ -39,10 +41,12 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final GradeCutoffRepository gradeCutoffRepository;
+    private final Clock clock;
 
-    public UserServiceImpl(UserRepository userRepository, GradeCutoffRepository gradeCutoffRepository) {
+    public UserServiceImpl(UserRepository userRepository, GradeCutoffRepository gradeCutoffRepository, Clock clock) {
         this.userRepository = userRepository;
         this.gradeCutoffRepository = gradeCutoffRepository;
+        this.clock = clock;
     }
 
     // Transactional: if the grade scale fails to save, the user isn't saved either
@@ -107,6 +111,19 @@ public class UserServiceImpl implements UserService {
     public void deleteUser(UUID id) {
         User existing = getUserById(id);
         userRepository.delete(existing);
+    }
+
+    // Idempotent: finishing twice keeps the first timestamp
+    @Override
+    public User completeOnboarding(UUID id) {
+        User existing = getUserById(id);
+
+        if (existing.getOnboardingCompletedAt() != null) {
+            return existing;
+        }
+
+        existing.setOnboardingCompletedAt(Instant.now(clock));
+        return userRepository.save(existing);
     }
 
     private void validateTimezone(String timezone) {

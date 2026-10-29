@@ -661,3 +661,31 @@ DELETE http://localhost:8080/study-sessions/{{sessionId}}
 
 ### P4.4.12 Delete the user (204, removes responsibilities, sessions, and check-ins)
 DELETE http://localhost:8080/users/{{userId}}
+
+
+
+################ Phase 4, Step 5: onboarding flag ################
+
+### P4.5.0 Create a fresh user (201)
+POST http://localhost:8080/users
+Content-Type: application/json
+
+{
+  "email": "onboard-{{$uuid}}@mail.com",
+  "displayName": "Newbie",
+  "timezone": "America/New_York"
+}
+
+> {% client.global.set("userId", response.body.id); %}
+
+### P4.5.1 Not onboarded yet (200, onboardingCompletedAt is null)
+GET http://localhost:8080/users/{{userId}}
+
+### P4.5.2 Complete onboarding (200, has a timestamp)
+PATCH http://localhost:8080/users/{{userId}}/onboarding/complete
+
+### P4.5.3 Complete again (200, same timestamp)
+PATCH http://localhost:8080/users/{{userId}}/onboarding/complete
+
+### P4.5.4 Unknown user (404)
+PATCH http://localhost:8080/users/{{$uuid}}/onboarding/complete

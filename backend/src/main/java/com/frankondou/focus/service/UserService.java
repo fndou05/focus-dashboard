@@ -10,4 +10,5 @@ public interface UserService {
     User getUserById(UUID id);
     User updateUser(UUID id, User updates);
     void deleteUser(UUID id);
+    User completeOnboarding(UUID id);
 }

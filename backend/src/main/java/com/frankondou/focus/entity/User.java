@@ -3,6 +3,7 @@ package com.frankondou.focus.entity;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,6 +31,10 @@ public class User {
     @Column(nullable = false)
     private BigDecimal priorGpa = BigDecimal.ZERO;
 
+    // A timestamp instead of a boolean, so it records when and not just whether
+    @Column
+    private Instant onboardingCompletedAt;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Semester> semesters;
 
@@ -54,6 +59,7 @@ public class User {
     public String getTimezone() { return timezone; }
     public BigDecimal getPriorCredits() { return priorCredits; }
     public BigDecimal getPriorGpa() { return priorGpa; }
+    public Instant getOnboardingCompletedAt() { return onboardingCompletedAt; }
     public List<Semester> getSemesters() { return semesters; }
     public List<GradeCutoff> getGradeCutoffs() { return gradeCutoffs; }
     public List<Responsibility> getResponsibilities() { return responsibilities; }
@@ -63,5 +69,6 @@ public class User {
     public void setTimezone(String timezone) { this.timezone = timezone; }
     public void setPriorCredits(BigDecimal priorCredits) { this.priorCredits = priorCredits; }
     public void setPriorGpa(BigDecimal priorGpa) { this.priorGpa = priorGpa; }
+    public void setOnboardingCompletedAt(Instant onboardingCompletedAt) { this.onboardingCompletedAt = onboardingCompletedAt; }
     public void setSemesters(List<Semester> semesters) { this.semesters = semesters; }
 }

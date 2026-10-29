@@ -53,6 +53,11 @@ public class UserController {
         return UserResponse.from(userService.updateUser(id, updates));
     }
 
+    @PatchMapping("/users/{id}/onboarding/complete")
+    public UserResponse completeOnboarding(@PathVariable("id") UUID id) {
+        return UserResponse.from(userService.completeOnboarding(id));
+    }
+
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/users/{id}")
     public void deleteUser(@PathVariable("id") UUID id) {
