@@ -225,3 +225,40 @@ Content-Type: application/json
 {
   "finalLetterGrade": ""
 }
+
+
+################ Step 4: calculations ################
+
+### 4.0 Remove the extra-credit entry so the numbers below hold (204)
+DELETE http://localhost:8080/grade-entries/{{extraEntryId}}
+
+### 4.1 Midterm 80/100 (201)
+POST http://localhost:8080/grade-components/{{midtermId}}/grade-entries
+Content-Type: application/json
+
+{
+  "title": "Midterm exam",
+  "scoreEarned": 80,
+  "scorePossible": 100,
+  "gradedOn": "2026-10-20"
+}
+
+### 4.2 Subject grade (200): HW 96.00, Midterm 80.00, currentPercent 86.40, B, 3.0
+GET http://localhost:8080/subjects/{{subjectId}}/grade
+
+### 4.3 Semester GPA (200): gpa 3.00, gradedCredits 4
+GET http://localhost:8080/semesters/{{semesterId}}/gpa
+
+### 4.4 Cumulative GPA (200): (3.5*45 + 12) / 49 = 3.46
+GET http://localhost:8080/users/{{userId}}/gpa
+
+### 4.5a Set final letter A (200)
+PATCH http://localhost:8080/subjects/{{subjectId}}
+Content-Type: application/json
+
+{
+  "finalLetterGrade": "A"
+}
+
+### 4.5b Subject grade again (200): letter A, points 4.00, isFinal true
+GET http://localhost:8080/subjects/{{subjectId}}/grade
