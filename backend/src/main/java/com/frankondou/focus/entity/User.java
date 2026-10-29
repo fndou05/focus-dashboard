@@ -2,6 +2,7 @@ package com.frankondou.focus.entity;
 
 import jakarta.persistence.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,10 +23,19 @@ public class User {
     @Column(nullable = false, length = 64)
     private String timezone;
 
+    // Snapshot of everything before the app, entered once at signup
+    @Column(nullable = false)
+    private BigDecimal priorCredits = BigDecimal.ZERO;
+
+    @Column(nullable = false)
+    private BigDecimal priorGpa = BigDecimal.ZERO;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Semester> semesters;
 
-    // Constructors
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<GradeCutoff> gradeCutoffs;
+
     public User() {}
 
     public User(String email, String displayName, String timezone) {
@@ -34,16 +44,20 @@ public class User {
         this.timezone = timezone;
     }
 
-    // Getters and Setters
+    // Getters
     public UUID getId() { return id; }
     public String getEmail() { return email; }
     public String getDisplayName() { return displayName; }
     public String getTimezone() { return timezone; }
-
+    public BigDecimal getPriorCredits() { return priorCredits; }
+    public BigDecimal getPriorGpa() { return priorGpa; }
     public List<Semester> getSemesters() { return semesters; }
-    public void setSemesters(List<Semester> semesters) { this.semesters = semesters; }
+    public List<GradeCutoff> getGradeCutoffs() { return gradeCutoffs; }
 
-    public void setEmail(String email) { this.email = email; }
+    // Setters (no setId or setEmail: neither can change)
     public void setDisplayName(String displayName) { this.displayName = displayName; }
     public void setTimezone(String timezone) { this.timezone = timezone; }
+    public void setPriorCredits(BigDecimal priorCredits) { this.priorCredits = priorCredits; }
+    public void setPriorGpa(BigDecimal priorGpa) { this.priorGpa = priorGpa; }
+    public void setSemesters(List<Semester> semesters) { this.semesters = semesters; }
 }

@@ -29,10 +29,19 @@ public class Subject {
     @Enumerated(EnumType.STRING)
     private StrengthRating selfRatedStrength;
 
+    // Empty until the semester ends; overrides the calculated grade
+    @Column(length = 2)
+    private String finalLetterGrade;
+
     @OneToMany(mappedBy = "subject", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<WeeklyGoal> weeklyGoals;
 
-    // Constructors
+    @OneToMany(mappedBy = "subject", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<StudySession> studySessions;
+
+    @OneToMany(mappedBy = "subject", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<GradeComponent> gradeComponents;
+
     public Subject() {}
 
     public Subject(Semester semester, String name, BigDecimal credits, StrengthRating selfRatedStrength) {
@@ -42,19 +51,22 @@ public class Subject {
         this.selfRatedStrength = selfRatedStrength;
     }
 
-    // Setters and getters
+    // Getters
     public UUID getId() { return id; }
     public Semester getSemester() { return semester; }
     public String getName() { return name; }
     public BigDecimal getCredits() { return credits; }
     public StrengthRating getSelfRatedStrength() { return selfRatedStrength; }
-
+    public String getFinalLetterGrade() { return finalLetterGrade; }
     public List<WeeklyGoal> getWeeklyGoals() { return weeklyGoals; }
-    public void setWeeklyGoals(List<WeeklyGoal> weeklyGoals) { this.weeklyGoals = weeklyGoals; }
+    public List<StudySession> getStudySessions() { return studySessions; }
+    public List<GradeComponent> getGradeComponents() { return gradeComponents; }
 
+    // Setters
     public void setSemester(Semester semester) { this.semester = semester; }
     public void setName(String name) { this.name = name; }
     public void setCredits(BigDecimal credits) { this.credits = credits; }
     public void setSelfRatedStrength(StrengthRating selfRatedStrength) { this.selfRatedStrength = selfRatedStrength; }
-
+    public void setFinalLetterGrade(String finalLetterGrade) { this.finalLetterGrade = finalLetterGrade; }
+    public void setWeeklyGoals(List<WeeklyGoal> weeklyGoals) { this.weeklyGoals = weeklyGoals; }
 }
