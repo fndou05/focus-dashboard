@@ -24,6 +24,12 @@ public class UserController {
     @PostMapping("/users")
     public UserResponse createUser(@RequestBody @Valid CreateUserRequest request) {
         User user = new User(request.email(), request.displayName(), request.timezone());
+        if (request.priorCredits() != null) {
+            user.setPriorCredits(request.priorCredits());
+        }
+        if (request.priorGpa() != null) {
+            user.setPriorGpa(request.priorGpa());
+        }
         return UserResponse.from(userService.createUser(user));
     }
 
@@ -42,6 +48,8 @@ public class UserController {
     @PatchMapping("/users/{id}")
     public UserResponse updateUser(@PathVariable("id") UUID id, @RequestBody @Valid UpdateUserRequest request) {
         User updates = new User(null, request.displayName(), request.timezone());
+        updates.setPriorCredits(request.priorCredits());
+        updates.setPriorGpa(request.priorGpa());
         return UserResponse.from(userService.updateUser(id, updates));
     }
 

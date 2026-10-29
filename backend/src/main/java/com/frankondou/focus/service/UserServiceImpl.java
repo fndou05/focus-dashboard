@@ -7,6 +7,7 @@ import com.frankondou.focus.exception.ConflictException;
 import com.frankondou.focus.exception.UserNotFoundException;
 import com.frankondou.focus.repository.GradeCutoffRepository;
 import com.frankondou.focus.repository.UserRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,7 +54,13 @@ public class UserServiceImpl implements UserService {
             throw new ConflictException("Email already in use");
         }
 
-        User saved = userRepository.save(user);
+        // Flush now so a duplicate email from a simultaneous signup fails here as a 409, not at commit as a 500
+        User saved;
+        try {
+            saved = userRepository.saveAndFlush(user);
+        } catch (DataIntegrityViolationException e) {
+            throw new ConflictException("Email already in use");
+        }
 
         gradeCutoffRepository.saveAll(DEFAULT_SCALE.stream()
                 .map(c -> new GradeCutoff(saved, c.letter(),
@@ -85,6 +92,12 @@ public class UserServiceImpl implements UserService {
         if (updates.getTimezone() != null && !updates.getTimezone().isBlank()) {
             validateTimezone(updates.getTimezone());
             existing.setTimezone(updates.getTimezone());
+        }
+        if (updates.getPriorCredits() != null) {
+            existing.setPriorCredits(updates.getPriorCredits());
+        }
+        if (updates.getPriorGpa() != null) {
+            existing.setPriorGpa(updates.getPriorGpa());
         }
 
         return userRepository.save(existing);
