@@ -36,6 +36,10 @@ public class StudySession {
     @Column
     private Instant endedAt;
 
+    // Inverse side, so deleting a session also deletes its check-in
+    @OneToOne(mappedBy = "session", cascade = CascadeType.ALL, orphanRemoval = true)
+    private CheckIn checkIn;
+
     // Constructors
     public StudySession() {}
 
@@ -54,6 +58,7 @@ public class StudySession {
     public Integer getFocusedMinutes() { return focusedMinutes; }
     public Instant getStartedAt() { return startedAt; }
     public Instant getEndedAt() { return  endedAt; }
+    public CheckIn getCheckIn() { return checkIn; }
 
     public void setSubject(Subject subject) { this.subject = subject; }
     public void setMode(SessionMode mode) { this.mode = mode; }

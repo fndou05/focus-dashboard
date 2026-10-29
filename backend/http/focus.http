@@ -535,3 +535,129 @@ Content-Type: application/json
 
 ### P4.3.5 Unknown user (404)
 GET http://localhost:8080/users/{{$uuid}}/free-time
+
+
+
+################ Phase 4, Step 4: check-ins ################
+
+### P4.4.1 Start a session on Physics (201)
+POST http://localhost:8080/subjects/{{physicsId}}/study-sessions
+Content-Type: application/json
+
+{
+  "mode": "POMODORO"
+}
+
+> {% client.global.set("sessionId", response.body.id); %}
+
+### P4.4.2 Check-in while still active (409)
+POST http://localhost:8080/study-sessions/{{sessionId}}/check-in
+Content-Type: application/json
+
+{
+  "moodRating": 4,
+  "difficultyRating": 3,
+  "confidenceRating": 5
+}
+
+### P4.4.3 End the session (200)
+PATCH http://localhost:8080/study-sessions/{{sessionId}}/end
+
+### P4.4.4 Check-in with notes (201)
+POST http://localhost:8080/study-sessions/{{sessionId}}/check-in
+Content-Type: application/json
+
+{
+  "moodRating": 4,
+  "difficultyRating": 3,
+  "confidenceRating": 5,
+  "notes": "Finally understood Gauss's law"
+}
+
+> {% client.global.set("checkInId", response.body.id); %}
+
+### P4.4.5 Same check-in again (409, duplicate)
+POST http://localhost:8080/study-sessions/{{sessionId}}/check-in
+Content-Type: application/json
+
+{
+  "moodRating": 4,
+  "difficultyRating": 3,
+  "confidenceRating": 5
+}
+
+### P4.4.6a Mood 0 (400)
+POST http://localhost:8080/study-sessions/{{sessionId}}/check-in
+Content-Type: application/json
+
+{
+  "moodRating": 0,
+  "difficultyRating": 3,
+  "confidenceRating": 5
+}
+
+### P4.4.6b Difficulty 6 (400)
+POST http://localhost:8080/study-sessions/{{sessionId}}/check-in
+Content-Type: application/json
+
+{
+  "moodRating": 4,
+  "difficultyRating": 6,
+  "confidenceRating": 5
+}
+
+### P4.4.6c Missing confidence (400)
+POST http://localhost:8080/study-sessions/{{sessionId}}/check-in
+Content-Type: application/json
+
+{
+  "moodRating": 4,
+  "difficultyRating": 3
+}
+
+### P4.4.7 Get the session's check-in (200)
+GET http://localhost:8080/study-sessions/{{sessionId}}/check-in
+
+### P4.4.8 List Physics check-ins (200, 1 item)
+GET http://localhost:8080/subjects/{{physicsId}}/check-ins
+
+### P4.4.9a Unknown session (404)
+GET http://localhost:8080/study-sessions/{{$uuid}}/check-in
+
+### P4.4.9b Start a second session (201)
+POST http://localhost:8080/subjects/{{physicsId}}/study-sessions
+Content-Type: application/json
+
+{
+  "mode": "FIXED"
+}
+
+> {% client.global.set("session2Id", response.body.id); %}
+
+### P4.4.9c End it (200)
+PATCH http://localhost:8080/study-sessions/{{session2Id}}/end
+
+### P4.4.9d Its check-in (404, it has none)
+GET http://localhost:8080/study-sessions/{{session2Id}}/check-in
+
+### P4.4.10a Delete the check-in (204)
+DELETE http://localhost:8080/check-ins/{{checkInId}}
+
+### P4.4.10b Its check-in is gone (404)
+GET http://localhost:8080/study-sessions/{{sessionId}}/check-in
+
+### P4.4.11a Recreate the check-in (201)
+POST http://localhost:8080/study-sessions/{{sessionId}}/check-in
+Content-Type: application/json
+
+{
+  "moodRating": 4,
+  "difficultyRating": 3,
+  "confidenceRating": 5
+}
+
+### P4.4.11b Delete the session (204, cascade removes the check-in)
+DELETE http://localhost:8080/study-sessions/{{sessionId}}
+
+### P4.4.12 Delete the user (204, removes responsibilities, sessions, and check-ins)
+DELETE http://localhost:8080/users/{{userId}}
