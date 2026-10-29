@@ -11,6 +11,7 @@ import com.frankondou.focus.repository.SubjectRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -21,12 +22,15 @@ public class StudySessionServiceImpl implements StudySessionService {
 
     private final StudySessionRepository studySessionRepository;
     private final SubjectRepository subjectRepository;
+    private final Clock clock;
 
     public StudySessionServiceImpl(
             StudySessionRepository studySessionRepository,
-            SubjectRepository subjectRepository) {
+            SubjectRepository subjectRepository,
+            Clock clock) {
         this.studySessionRepository = studySessionRepository;
         this.subjectRepository = subjectRepository;
+        this.clock = clock;
     }
 
     @Override
@@ -42,7 +46,7 @@ public class StudySessionServiceImpl implements StudySessionService {
         }
 
         session.setSubject(subject);
-        session.setStartedAt(Instant.now());
+        session.setStartedAt(Instant.now(clock));
         session.setStatus(SessionStatus.ACTIVE);
         session.setFocusedMinutes(null);
         session.setEndedAt(null);
@@ -59,7 +63,7 @@ public class StudySessionServiceImpl implements StudySessionService {
             throw new ConflictException("Only active study sessions can be ended");
         }
 
-        Instant endedAt = Instant.now();
+        Instant endedAt = Instant.now(clock);
         long minutes = Duration.between(session.getStartedAt(), endedAt).toMinutes();
 
         session.setEndedAt(endedAt);

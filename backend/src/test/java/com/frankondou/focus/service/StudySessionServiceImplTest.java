@@ -13,9 +13,11 @@ import com.frankondou.focus.repository.SubjectRepository;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -28,8 +30,10 @@ class StudySessionServiceImplTest {
 
     private final StudySessionRepository studySessionRepository = mock(StudySessionRepository.class);
     private final SubjectRepository subjectRepository = mock(SubjectRepository.class);
+    private final Instant now = Instant.parse("2026-10-28T12:00:00Z");
+    private final Clock clock = Clock.fixed(now, ZoneOffset.UTC);
     private final StudySessionServiceImpl service =
-            new StudySessionServiceImpl(studySessionRepository, subjectRepository);
+            new StudySessionServiceImpl(studySessionRepository, subjectRepository, clock);
 
     private Subject subject() {
         User user = new User("a@b.com", "Franko", "America/New_York");
@@ -54,7 +58,7 @@ class StudySessionServiceImplTest {
     @Test
     void endSession_whenAlreadyCompleted_throwsConflict() {
         UUID sessionId = UUID.randomUUID();
-        StudySession completed = new StudySession(subject(), SessionMode.FIXED, Instant.now());
+        StudySession completed = new StudySession(subject(), SessionMode.FIXED, now);
         completed.setStatus(SessionStatus.COMPLETED);
         when(studySessionRepository.findById(sessionId)).thenReturn(Optional.of(completed));
 
@@ -66,14 +70,14 @@ class StudySessionServiceImplTest {
     void endSession_whenActive_marksCompletedAndRecordsMinutes() {
         UUID sessionId = UUID.randomUUID();
         StudySession active = new StudySession(subject(), SessionMode.FIXED,
-                Instant.now().minus(Duration.ofMinutes(30)));
+                now.minus(Duration.ofMinutes(30)));
         when(studySessionRepository.findById(sessionId)).thenReturn(Optional.of(active));
         when(studySessionRepository.save(any())).thenAnswer(call -> call.getArgument(0));
 
         StudySession result = service.endStudySession(sessionId);
 
         assertEquals(SessionStatus.COMPLETED, result.getStatus());
-        assertNotNull(result.getEndedAt());
+        assertEquals(now, result.getEndedAt());
         assertEquals(30, result.getFocusedMinutes());
     }
 }
