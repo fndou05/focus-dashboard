@@ -17,7 +17,6 @@ public final class GradeCalculator {
     public record CreditPoints(BigDecimal credits, BigDecimal gradePoints) {}
 
     private static final BigDecimal HUNDRED = new BigDecimal("100");
-    private static final int DIVISION_SCALE = 6;
     private static final int RESULT_SCALE = 2;
 
     private GradeCalculator() {}
@@ -83,7 +82,6 @@ public final class GradeCalculator {
 
     // Round once at the end of each calculation, not at every step
     private static BigDecimal divide(BigDecimal numerator, BigDecimal denominator) {
-        return numerator.divide(denominator, DIVISION_SCALE, RoundingMode.HALF_UP)
-                .setScale(RESULT_SCALE, RoundingMode.HALF_UP);
+        return numerator.divide(denominator, RESULT_SCALE, RoundingMode.HALF_UP);
     }
 }
