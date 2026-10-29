@@ -7,3 +7,24 @@ Content-Type: application/json
   "displayName": "Franko",
   "timezone": "America/New_York"
 }
+
+### Create grade component (201). Total weight per subject can't pass 100 (400)
+POST http://localhost:8080/subjects/{{subjectId}}/grade-components
+Content-Type: application/json
+
+{
+  "name": "Midterm",
+  "category": "MIDTERM",
+  "weightPercent": 30
+}
+
+### List grade components
+GET http://localhost:8080/subjects/{{subjectId}}/grade-components
+
+### Update grade component weight
+PATCH http://localhost:8080/grade-components/{{componentId}}
+Content-Type: application/json
+
+{
+  "weightPercent": 25
+}
