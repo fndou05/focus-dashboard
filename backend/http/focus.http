@@ -488,3 +488,50 @@ Content-Type: application/json
   "targetHours": 6,
   "effectiveFrom": "2026-09-01"
 }
+
+
+
+################ Phase 4, Step 3: free time ################
+
+### P4.3.1 Free time (200): class 6.50, committed 87.50, free 80.50, planned 6.00, leftover 74.50, recommended 19.38, [UNUSED_FREE_TIME]
+GET http://localhost:8080/users/{{userId}}/free-time
+
+### P4.3.2a Sleep down to 42 (200)
+PATCH http://localhost:8080/responsibilities/{{sleepId}}
+Content-Type: application/json
+
+{
+  "hoursPerWeek": 42
+}
+
+### P4.3.2b Free time (200): [LOW_SLEEP, UNUSED_FREE_TIME]
+GET http://localhost:8080/users/{{userId}}/free-time
+
+### P4.3.3a Add a 100 hour Overload (201)
+POST http://localhost:8080/users/{{userId}}/responsibilities
+Content-Type: application/json
+
+{
+  "label": "Overload",
+  "category": "CUSTOM",
+  "hoursPerWeek": 100
+}
+
+> {% client.global.set("overloadId", response.body.id); %}
+
+### P4.3.3b Free time (200): free -5.50, [LOW_SLEEP, OVER_BOOKED]
+GET http://localhost:8080/users/{{userId}}/free-time
+
+### P4.3.4a Delete Overload (204)
+DELETE http://localhost:8080/responsibilities/{{overloadId}}
+
+### P4.3.4b Sleep back to 56 (200)
+PATCH http://localhost:8080/responsibilities/{{sleepId}}
+Content-Type: application/json
+
+{
+  "hoursPerWeek": 56
+}
+
+### P4.3.5 Unknown user (404)
+GET http://localhost:8080/users/{{$uuid}}/free-time
