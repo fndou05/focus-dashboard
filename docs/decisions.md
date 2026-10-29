@@ -12,7 +12,7 @@ I also decided not to use Lombok. It's everywhere in Spring codebases because it
 
 The backend uses the standard layered setup: controllers handle HTTP, services hold the business rules, and repositories talk to the database. It means a few more files per feature, but each one has a single job. I can test the rules without running a web server, and I can change how data is stored without touching the endpoints.
 
-Every class gets its dependencies through its constructor, which turned out to matter more than I expected. When I wrote my first tests, I could hand a service fake repositories directly, with no Spring needed at all.
+Every class gets its dependencies through its constructor, which turned out to matter more than I expected. Tests can hand a service fake repositories directly, with no Spring needed at all.
 
 ## The data model
 
@@ -27,7 +27,7 @@ Weekly goals work the same way. When you change your Physics goal, the app doesn
 A few smaller choices follow from thinking about what the data means:
 
 - **Nothing can be created without its parent.** A class can't exist without a semester, so the constructor won't let you make one without it.
-- **Empty values only mean "we don't know yet."** The only fields allowed to be empty are a session's end time and minutes, because a running session genuinely doesn't have them yet.
+- **Empty values only mean "we don't know yet."** A session's end time and minutes are empty while it's running, a class's final letter grade is empty until the semester ends, and the onboarding completion time is empty until setup is done.
 - **Choices like session mode are enums stored by name,** so a typo like `"pomodorro"` gets rejected, and adding new options later doesn't scramble old data.
 - **Credits and hours use `BigDecimal`** instead of `double`, because some schools use half credits, and floating-point rounding errors have no place in GPA math.
 - **Email is unique and can't be changed after signup,** because it's going to be how people log in. Display names don't need to be unique, since nothing looks people up by name. They're capped at 16 characters as a nickname limit.
@@ -69,13 +69,29 @@ Prior credits and GPA are a snapshot I enter once at signup, not something calcu
 
 All of this uses `BigDecimal`, and rounding happens once at the end of each calculation (half-up), not at every step, so small errors can't pile up. The math lives in one class with no Spring or database in it, so the tests can check exact numbers without any setup.
 
+## Free time and check-ins
+
+Free time is 168 hours minus sleep, work, custom commitments like the gym, and class hours. Only the current semester's classes count, since last semester's classes don't take up this week. Class hours live on the subject, next to its credits, because they're a fact about that class.
+
+The app lets the total go over 168 hours and warns about it instead of blocking. If I rejected the input, the person would be stuck guessing which number to cut. If I show a negative free-time number with an "overbooked" warning, they can see the problem and fix it themselves. The same goes for the other warnings, like low sleep or a goal bigger than the free time.
+
+The warning thresholds are named constants in one place, because they're reasonable guesses and not science. I used 7 hours of sleep a night, and treat under 30 free hours as a packed week, since meals and hygiene come out of free time too. Study time starts at about 2 hours per credit, then scales with the kind of class. Each class has a category (STEM, arts and humanities, social sciences, business, health, law, occupational, or other) that sets a starting multiplier, and the student's own strength rating for that class adjusts it: weak raises it and strong lowers it. I didn't want a list of subject names in the code, and I didn't want one fixed number for everybody. A student who is strong at STEM and weak at humanities ends up with more recommended time for the humanities class (2.5 hours per credit, against 2.0 for the STEM class), even though STEM starts higher. The category multipliers are rough guesses I accepted as starting points, not numbers from a study, and they're constants so they're easy to tune. Law gets its own category because of its heavy reading load, which doesn't fit with business or humanities, and the frontend will label it as graduate-level law since that's where most law classes happen.
+
+Check-ins are a quick reflection after a completed session, with mood, difficulty, and confidence rated 1 to 5, plus optional notes. There's one per session, and they can't be edited. A check-in is a snapshot of how someone felt, so fixing a misclick means deleting it and submitting a new one. I'm only storing them for now, and they'll feed the suggestions in a later phase.
+
+Onboarding is stored as a timestamp instead of a boolean. It answers "has this person finished setup?" the same way, but it also records when, which could be useful later. Calling it twice keeps the first timestamp.
+
+One cost I accepted: a session and its check-in are a one-to-one link, and Hibernate can't load the check-in side lazily. That means one extra query for every session it loads. At this size it doesn't matter, and I'll revisit it if sessions ever get loaded in bulk.
+
+Suggestions based on grades, like noticing that someone is struggling and has free time, are left for Phase 8, where hours, grades, and check-ins can be looked at together.
+
 ## The database workflow
 
 Right now, Hibernate creates and updates the tables automatically, which is great while the design is still moving. It only ever adds things, though, and never removes or renames them, so before deploying I'll switch to Flyway migrations, where every schema change is a versioned script, and Hibernate will just double-check that everything matches.
 
 ## Testing
 
-The service tests use Mockito to fake the repositories, so they run in milliseconds and test the business rules without needing a database. They cover the rules most likely to break quietly: backwards semester dates, double-started sessions, duplicate emails, fake timezones, and the Sunday-night week boundary.
+The service tests use Mockito to fake the repositories, so they run in milliseconds and test the business rules without needing a database. They cover the rules most likely to break quietly: backwards semester dates, double-started sessions, duplicate emails, fake timezones, the Sunday-night week boundary, the grade and GPA math, the free-time warnings including their exact boundaries, and the one-check-in-per-session rule.
 
 ## What's planned
 

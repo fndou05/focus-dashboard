@@ -6,7 +6,7 @@ I’m also using this project to get good at agentic coding. My mentors pushed m
 
 ## Where it's at
 
-The backend is done through grades and GPA, and it's tested. You can create a user, add semesters and classes, set weekly goals, run study sessions, and get a weekly progress report like "Physics: 4.5 of 7 hours this week." You can also set up each class's weighted grade categories, log graded work, and see your current grade, semester GPA, and cumulative GPA update as you go. Login, the frontend, and the rest are on the [roadmap](#roadmap).
+The backend is done through grades, GPA, free time, and check-ins, and it's tested. You can create a user, add semesters and classes, set weekly goals, run study sessions, and get a weekly progress report like "Physics: 4.5 of 7 hours this week." You can also set up each class's weighted grade categories, log graded work, and see your current grade, semester GPA, and cumulative GPA update as you go. Login, the frontend, and the rest are on the [roadmap](#roadmap).
 
 ## How it's built
 
@@ -21,6 +21,10 @@ I wrote up the reasoning behind every major choice in [docs/decisions.md](docs/d
 **Goals keep their history.** Changing your Physics goal from 7 to 10 hours doesn't overwrite the old one. It adds a new goal with the date it takes effect, so later features can compare how goals changed against how grades moved.
 
 **Study sessions have rules.** The server decides when a session started and ended and how long it lasted, not the client. You can only have one session running at a time, and trying to start a second one returns a clear 409 Conflict instead of corrupting your data.
+
+**Overbooked weeks get a warning, not an error.** If your commitments add up to more hours than a week has, the app doesn't reject the input. It tells you the week is overbooked, so you can see the problem and fix it.
+
+**Study-time recommendations adapt to you.** Instead of one rule for every class, the app starts from about 2 hours per credit, raises it for heavier kinds of classes like STEM, and then adjusts for how strong you say you are in that class. Someone strong at STEM and someone weak at humanities don't get the same advice.
 
 **GPA stays accurate mid-semester.** Your current grade only counts the categories that have grades so far, so if the final is worth 50% and hasn't happened yet, you're not graded as if you scored zero on it.
 
@@ -37,6 +41,8 @@ erDiagram
   SUBJECTS ||--o{ STUDY_SESSIONS : "studied in"
   SUBJECTS ||--o{ GRADE_COMPONENTS : "weighted by"
   GRADE_COMPONENTS ||--o{ GRADE_ENTRIES : contains
+  USERS ||--o{ RESPONSIBILITIES : has
+  STUDY_SESSIONS ||--o| CHECK_INS : "followed by"
 
   USERS {
     uuid id PK
@@ -45,6 +51,7 @@ erDiagram
     string timezone
     decimal prior_credits
     decimal prior_gpa
+    timestamp onboarding_completed_at
   }
   SEMESTERS {
     uuid id PK
@@ -60,6 +67,8 @@ erDiagram
     decimal credits
     string self_rated_strength
     string final_letter_grade
+    decimal weekly_class_hours
+    string category
   }
   WEEKLY_GOALS {
     uuid id PK
@@ -90,6 +99,21 @@ erDiagram
     decimal score_earned
     decimal score_possible
     date graded_on
+  }
+  RESPONSIBILITIES {
+    uuid id PK
+    uuid user_id FK
+    string label
+    string category
+    decimal hours_per_week
+  }
+  CHECK_INS {
+    uuid id PK
+    uuid session_id FK "unique"
+    int mood_rating
+    int difficulty_rating
+    int confidence_rating
+    string notes
   }
   GRADE_CUTOFFS {
     uuid id PK
@@ -123,6 +147,13 @@ erDiagram
 | GET | `/subjects/{subjectId}/grade` | A class's current percent and letter, with a per-category breakdown |
 | GET | `/semesters/{semesterId}/gpa` | A semester's GPA |
 | GET | `/users/{userId}/gpa` | Cumulative GPA, including prior history |
+| POST / GET | `/users/{userId}/responsibilities` | Add or list weekly commitments like sleep and work |
+| GET / PATCH / DELETE | `/responsibilities/{id}` | Get, update, or delete a commitment |
+| GET | `/users/{userId}/free-time` | Free hours left in a week, with warnings |
+| POST / GET | `/study-sessions/{sessionId}/check-in` | Add or see the check-in after a session |
+| GET | `/subjects/{subjectId}/check-ins` | A class's check-ins, newest first |
+| DELETE | `/check-ins/{id}` | Delete a check-in |
+| PATCH | `/users/{id}/onboarding/complete` | Mark a user's setup as finished |
 
 ## Running it locally
 
@@ -148,7 +179,7 @@ cd backend
 - [x] Core backend: users, semesters, classes, goals, study sessions, weekly progress
 - [x] Grades and GPA, with weighted grade categories and live semester and cumulative GPA
 - [ ] Login with Spring Security and JWT, plus Flyway database migrations
-- [ ] A free-time calculator and quick check-ins after each session
+- [x] A free-time calculator and quick check-ins after each session
 - [ ] The Next.js frontend
 - [ ] Deployment
 - [ ] A desktop agent that tracks and blocks distracting apps during sessions
