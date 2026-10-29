@@ -22,6 +22,8 @@ I wrote up the reasoning behind every major choice in [docs/decisions.md](docs/d
 
 **Study sessions have rules.** The server decides when a session started and ended and how long it lasted, not the client. You can only have one session running at a time, and trying to start a second one returns a clear 409 Conflict instead of corrupting your data.
 
+**GPA stays accurate mid-semester.** Your current grade only counts the categories that have grades so far, so if the final is worth 50% and hasn't happened yet, you're not graded as if you scored zero on it.
+
 **Errors mean something.** Bad input gets a 400 with a message about which field was wrong, missing things get a 404, and conflicts get a 409. A 500 only ever means a real bug.
 
 ## Data model
@@ -84,6 +86,15 @@ erDiagram
 | POST / GET | `/subjects/{subjectId}/study-sessions` | Start a session or list past ones |
 | PATCH | `/study-sessions/{id}/end` | End a running session |
 | GET | `/users/{userId}/progress/weekly` | This week's hours vs. goals, per class |
+| GET | `/users/{userId}/grade-cutoffs` | See your grade scale |
+| PATCH | `/grade-cutoffs/{id}` | Change a letter's cutoff or grade points |
+| POST / GET | `/subjects/{subjectId}/grade-components` | Add or list a class's weighted grade categories |
+| GET / PATCH / DELETE | `/grade-components/{id}` | Get, update, or delete a grade category |
+| POST / GET | `/grade-components/{componentId}/grade-entries` | Add or list graded work in a category |
+| GET / PATCH / DELETE | `/grade-entries/{id}` | Get, update, or delete a graded item |
+| GET | `/subjects/{subjectId}/grade` | A class's current percent and letter, with a per-category breakdown |
+| GET | `/semesters/{semesterId}/gpa` | A semester's GPA |
+| GET | `/users/{userId}/gpa` | Cumulative GPA, including prior history |
 
 ## Running it locally
 
@@ -107,7 +118,7 @@ cd backend
 ## Roadmap
 
 - [x] Core backend: users, semesters, classes, goals, study sessions, weekly progress
-- [ ] Grades and GPA, with weighted grade categories and live semester and cumulative GPA
+- [x] Grades and GPA, with weighted grade categories and live semester and cumulative GPA
 - [ ] Login with Spring Security and JWT, plus Flyway database migrations
 - [ ] A free-time calculator and quick check-ins after each session
 - [ ] The Next.js frontend

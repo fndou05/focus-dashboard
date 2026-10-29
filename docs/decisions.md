@@ -53,6 +53,22 @@ Study sessions aren't edited like normal records. You start one and you end one,
 
 Validation happens in two places. The request records check the shape of the input, like required fields, lengths, and positive numbers. The services check the actual business rules, like whether a semester's dates are in order, whether a timezone is real, and whether you already have a session going. Errors come back with codes that mean something: 400 for bad input, 404 for something that doesn't exist, and 409 for a conflict. A 500 should only ever mean I have a bug.
 
+## Grades and GPA
+
+Each class splits its grade into weighted categories, like Homework at 20% and Midterm at 30%. I cap the total at 100% per class and reject anything that would go over, because a class that adds up to 110% can't produce a meaningful grade.
+
+The current grade only counts categories that have at least one graded item, and divides by the weights actually used. If the final is worth 50% and hasn't happened yet, treating it as a zero would make every grade look terrible until the end of the semester, and ignoring its weight without renormalizing would cap the grade at 50%. Dividing by the weights in play answers the question I actually care about: how am I doing on what's been graded so far?
+
+Extra credit is allowed, so a score of 55 out of 50 is fine. Plenty of classes work that way, and a rule against it would just make the app wrong for those classes.
+
+The official final letter grade overrides the calculated one. At the end of a semester, a curve or a professor's judgment can make the real grade differ from the math, and the transcript is what counts for GPA. The calculated percent is still shown next to it, so I can see the difference.
+
+Letter lookup uses the percent rounded to two decimals, since that's the number the student sees. 92.99 is an A- and 93.00 is an A, with no hidden digits deciding it behind the scenes. The grade scale is also per user, seeded with a standard one, because schools draw their cutoffs differently. Letters themselves can't change, only their cutoffs and grade points, and the lowest cutoff has to stay at 0% so every grade gets a letter.
+
+Prior credits and GPA are a snapshot I enter once at signup, not something calculated from old classes. Cumulative GPA is then the prior quality points plus this app's quality points, divided by all the credits. Since the snapshot only covers what happened before the app, nothing gets counted twice.
+
+All of this uses `BigDecimal`, and rounding happens once at the end of each calculation (half-up), not at every step, so small errors can't pile up. The math lives in one class with no Spring or database in it, so the tests can check exact numbers without any setup.
+
 ## The database workflow
 
 Right now, Hibernate creates and updates the tables automatically, which is great while the design is still moving. It only ever adds things, though, and never removes or renames them, so before deploying I'll switch to Flyway migrations, where every schema change is a versioned script, and Hibernate will just double-check that everything matches.
