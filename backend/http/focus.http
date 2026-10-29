@@ -8,7 +8,99 @@ Content-Type: application/json
   "timezone": "America/New_York"
 }
 
-### Create grade component (201). Total weight per subject can't pass 100 (400)
+
+
+################ Step 3a: prior history and grade scale ################
+
+### 3a.1 Create user with prior history (201)
+POST http://localhost:8080/users
+Content-Type: application/json
+
+{
+  "email": "grades-{{$uuid}}@mail.com",
+  "displayName": "Grader",
+  "timezone": "America/New_York",
+  "priorCredits": 45,
+  "priorGpa": 3.4
+}
+
+> {% client.global.set("userId", response.body.id); %}
+
+### 3a.2 Prior GPA out of range (400)
+POST http://localhost:8080/users
+Content-Type: application/json
+
+{
+  "email": "bad-{{$uuid}}@mail.com",
+  "displayName": "Grader",
+  "timezone": "America/New_York",
+  "priorGpa": 9.0
+}
+
+### 3a.3 List the grade scale (200, 12 items, A first)
+GET http://localhost:8080/users/{{userId}}/grade-cutoffs
+
+> {% client.global.set("cutoffId", response.body[0].id); %}
+
+### 3a.4 Change the A cutoff (200)
+PATCH http://localhost:8080/grade-cutoffs/{{cutoffId}}
+Content-Type: application/json
+
+{
+  "minPercent": 94
+}
+
+### 3a.5 Update prior GPA only (200, priorCredits stays 45)
+PATCH http://localhost:8080/users/{{userId}}
+Content-Type: application/json
+
+{
+  "priorGpa": 3.5
+}
+
+
+################ Setup for 3b onward ################
+
+### Create semester (201)
+POST http://localhost:8080/users/{{userId}}/semesters
+Content-Type: application/json
+
+{
+  "name": "Fall 2026",
+  "startDate": "2026-09-01",
+  "endDate": "2026-12-20"
+}
+
+> {% client.global.set("semesterId", response.body.id); %}
+
+### Create subject (201)
+POST http://localhost:8080/semesters/{{semesterId}}/subjects
+Content-Type: application/json
+
+{
+  "name": "Physics",
+  "credits": 4,
+  "selfRatedStrength": "AVERAGE"
+}
+
+> {% client.global.set("subjectId", response.body.id); %}
+
+
+################ Step 3b: grade components ################
+
+### 3b.1 Homework 20 (201)
+POST http://localhost:8080/subjects/{{subjectId}}/grade-components
+Content-Type: application/json
+
+{
+  "name": "Homework",
+  "category": "HOMEWORK",
+  "weightPercent": 20
+}
+
+> {% client.global.set("homeworkId", response.body.id); %}
+
+### 3b.2 Midterm 30 (201)
 POST http://localhost:8080/subjects/{{subjectId}}/grade-components
 Content-Type: application/json
 
@@ -18,13 +110,118 @@ Content-Type: application/json
   "weightPercent": 30
 }
 
-### List grade components
-GET http://localhost:8080/subjects/{{subjectId}}/grade-components
+> {% client.global.set("midtermId", response.body.id); %}
 
-### Update grade component weight
-PATCH http://localhost:8080/grade-components/{{componentId}}
+### 3b.3 Final 50 (201, total is now 100)
+POST http://localhost:8080/subjects/{{subjectId}}/grade-components
+Content-Type: application/json
+
+{
+  "name": "Final",
+  "category": "FINAL",
+  "weightPercent": 50
+}
+
+### 3b.4 Quiz 10 (400, total would be 110)
+POST http://localhost:8080/subjects/{{subjectId}}/grade-components
+Content-Type: application/json
+
+{
+  "name": "Quiz",
+  "category": "QUIZ",
+  "weightPercent": 10
+}
+
+### 3b.5 Homework to 20 (200, own weight excluded)
+PATCH http://localhost:8080/grade-components/{{homeworkId}}
+Content-Type: application/json
+
+{
+  "weightPercent": 20
+}
+
+### 3b.6 Homework to 25 (400)
+PATCH http://localhost:8080/grade-components/{{homeworkId}}
 Content-Type: application/json
 
 {
   "weightPercent": 25
+}
+
+### 3b.7 List components (200, 3 items)
+GET http://localhost:8080/subjects/{{subjectId}}/grade-components
+
+
+################ Step 3c: grade entries and final letter ################
+
+### 3c.1 HW 1, 45/50 (201)
+POST http://localhost:8080/grade-components/{{homeworkId}}/grade-entries
+Content-Type: application/json
+
+{
+  "title": "HW 1",
+  "scoreEarned": 45,
+  "scorePossible": 50,
+  "gradedOn": "2026-09-15"
+}
+
+> {% client.global.set("entryId", response.body.id); %}
+
+### 3c.2 Possible score 0 (400)
+POST http://localhost:8080/grade-components/{{homeworkId}}/grade-entries
+Content-Type: application/json
+
+{
+  "title": "HW bad",
+  "scoreEarned": 45,
+  "scorePossible": 0,
+  "gradedOn": "2026-09-15"
+}
+
+### 3c.3 Extra credit, 55/50 (201)
+POST http://localhost:8080/grade-components/{{homeworkId}}/grade-entries
+Content-Type: application/json
+
+{
+  "title": "HW extra",
+  "scoreEarned": 55,
+  "scorePossible": 50,
+  "gradedOn": "2026-09-22"
+}
+
+> {% client.global.set("extraEntryId", response.body.id); %}
+
+### 3c.4 Fix HW 1 score to 48 (200)
+PATCH http://localhost:8080/grade-entries/{{entryId}}
+Content-Type: application/json
+
+{
+  "scoreEarned": 48
+}
+
+### 3c.5 List Homework entries (200, 2 items)
+GET http://localhost:8080/grade-components/{{homeworkId}}/grade-entries
+
+### 3c.6 Unknown final letter (400)
+PATCH http://localhost:8080/subjects/{{subjectId}}
+Content-Type: application/json
+
+{
+  "finalLetterGrade": "Z"
+}
+
+### 3c.7 Final letter b+ (200, shows B+)
+PATCH http://localhost:8080/subjects/{{subjectId}}
+Content-Type: application/json
+
+{
+  "finalLetterGrade": "b+"
+}
+
+### 3c.8 Clear final letter (200, shows null)
+PATCH http://localhost:8080/subjects/{{subjectId}}
+Content-Type: application/json
+
+{
+  "finalLetterGrade": ""
 }

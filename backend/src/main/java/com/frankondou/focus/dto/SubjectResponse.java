@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 public record SubjectResponse(UUID id, UUID semesterId, String name, BigDecimal credits,
-                              StrengthRating selfRatedStrength) {
+                              StrengthRating selfRatedStrength, String finalLetterGrade) {
 
     public static SubjectResponse from(Subject subject) {
         return new SubjectResponse(
@@ -14,7 +14,8 @@ public record SubjectResponse(UUID id, UUID semesterId, String name, BigDecimal 
                 subject.getSemester().getId(),
                 subject.getName(),
                 subject.getCredits(),
-                subject.getSelfRatedStrength()
+                subject.getSelfRatedStrength(),
+                subject.getFinalLetterGrade()
         );
     }
 }

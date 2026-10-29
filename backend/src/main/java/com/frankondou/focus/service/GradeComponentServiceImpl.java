@@ -79,13 +79,14 @@ public class GradeComponentServiceImpl implements GradeComponentService {
 
     // On update, skip the component being edited so its old weight isn't counted twice
     private void validateTotalWeight(UUID subjectId, UUID excludedComponentId, BigDecimal newWeight) {
-        BigDecimal total = gradeComponentRepository.findBySubject_Id(subjectId).stream()
+        BigDecimal currentTotal = gradeComponentRepository.findBySubject_Id(subjectId).stream()
                 .filter(c -> !c.getId().equals(excludedComponentId))
                 .map(GradeComponent::getWeightPercent)
-                .reduce(newWeight, BigDecimal::add);
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        if (total.compareTo(MAX_TOTAL_WEIGHT) > 0) {
-            throw new BadRequestException("Total weight of a subject's components cannot exceed 100%");
+        if (currentTotal.add(newWeight).compareTo(MAX_TOTAL_WEIGHT) > 0) {
+            throw new BadRequestException("Total component weight for this subject cannot exceed 100% (currently "
+                    + currentTotal + "%)");
         }
     }
 }

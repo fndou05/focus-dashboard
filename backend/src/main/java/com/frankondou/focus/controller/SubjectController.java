@@ -50,6 +50,7 @@ public class SubjectController {
         updates.setName(request.name());
         updates.setCredits(request.credits());
         updates.setSelfRatedStrength(request.selfRatedStrength());
+        updates.setFinalLetterGrade(request.finalLetterGrade());
         return SubjectResponse.from(subjectService.updateSubject(id, updates));
     }
 

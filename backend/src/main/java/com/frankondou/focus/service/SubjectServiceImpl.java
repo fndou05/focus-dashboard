@@ -2,8 +2,10 @@ package com.frankondou.focus.service;
 
 import com.frankondou.focus.entity.Semester;
 import com.frankondou.focus.entity.Subject;
+import com.frankondou.focus.exception.BadRequestException;
 import com.frankondou.focus.exception.SemesterNotFoundException;
 import com.frankondou.focus.exception.SubjectNotFoundException;
+import com.frankondou.focus.repository.GradeCutoffRepository;
 import com.frankondou.focus.repository.SemesterRepository;
 import com.frankondou.focus.repository.SubjectRepository;
 import org.springframework.stereotype.Service;
@@ -16,12 +18,15 @@ public class SubjectServiceImpl implements SubjectService {
 
     private final SubjectRepository subjectRepository;
     private final SemesterRepository semesterRepository;
+    private final GradeCutoffRepository gradeCutoffRepository;
 
     public SubjectServiceImpl(
             SubjectRepository subjectRepository,
-            SemesterRepository semesterRepository) {
+            SemesterRepository semesterRepository,
+            GradeCutoffRepository gradeCutoffRepository) {
         this.subjectRepository = subjectRepository;
         this.semesterRepository = semesterRepository;
+        this.gradeCutoffRepository = gradeCutoffRepository;
     }
 
     @Override
@@ -64,6 +69,8 @@ public class SubjectServiceImpl implements SubjectService {
             existing.setSelfRatedStrength(updates.getSelfRatedStrength());
         }
 
+        applyFinalLetterGrade(existing, updates.getFinalLetterGrade());
+
         return subjectRepository.save(existing);
     }
 
@@ -71,5 +78,24 @@ public class SubjectServiceImpl implements SubjectService {
     public void deleteSubject(UUID id) {
         Subject existing = getSubjectById(id);
         subjectRepository.delete(existing);
+    }
+
+    // null means "not sent"; an empty string is how a client removes the final grade
+    private void applyFinalLetterGrade(Subject subject, String requested) {
+        if (requested == null) {
+            return;
+        }
+
+        String letter = requested.trim().toUpperCase();
+        if (letter.isEmpty()) {
+            subject.setFinalLetterGrade(null);
+            return;
+        }
+
+        UUID userId = subject.getSemester().getUser().getId();
+        if (!gradeCutoffRepository.existsByUser_IdAndLetter(userId, letter)) {
+            throw new BadRequestException("Unknown letter grade: " + letter);
+        }
+        subject.setFinalLetterGrade(letter);
     }
 }
