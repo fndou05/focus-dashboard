@@ -2,7 +2,7 @@
 
 I'm a CS student with ADHD, and staying focused and knowing where my time actually goes has always been a challenge. Most study apps either track time or track grades, but none of them connect the two, so you never find out whether the hours you put into Physics are actually paying off. Focus Dashboard is the tool I wanted for myself: you set weekly study goals for each class, run focused study sessions, and see how your logged hours stack up against those goals. It also tracks grades and GPA, and a desktop agent that keeps you off Discord is next.
 
-I'm also using it to learn full-stack development the slow way, writing and understanding every line instead of generating it.
+I’m also using this project to get good at agentic coding. My mentors pushed me toward it, and a lot of the internship postings I’m applying to now expect engineers who can work effectively with AI coding tools. So I plan each feature, often talking through the design with AI as a sounding board, and write a detailed spec for it. Then an AI agent (Claude Code) implements it against that spec, and I review every line before anything gets committed: checking the logic, changing what doesn’t fit, and making sure I can explain it. The reasoning behind the design is in docs/decisions.md.
 
 ## Where it's at
 
