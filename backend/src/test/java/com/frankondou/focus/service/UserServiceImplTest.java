@@ -3,6 +3,7 @@ package com.frankondou.focus.service;
 import com.frankondou.focus.entity.User;
 import com.frankondou.focus.exception.BadRequestException;
 import com.frankondou.focus.exception.ConflictException;
+import com.frankondou.focus.repository.GradeCutoffRepository;
 import com.frankondou.focus.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 
@@ -13,7 +14,8 @@ import static org.mockito.Mockito.*;
 class UserServiceImplTest {
 
     private final UserRepository userRepository = mock(UserRepository.class);
-    private final UserServiceImpl service = new UserServiceImpl(userRepository);
+    private final GradeCutoffRepository gradeCutoffRepository = mock(GradeCutoffRepository.class);
+    private final UserServiceImpl service = new UserServiceImpl(userRepository, gradeCutoffRepository);
 
     @Test
     void createUser_withDuplicateEmail_throwsConflict() {
@@ -33,3 +35,4 @@ class UserServiceImplTest {
         verify(userRepository, never()).save(any());
     }
 }
+

@@ -1,0 +1,9 @@
+### Create user (201)
+POST http://localhost:8080/users
+Content-Type: application/json
+
+{
+  "email": "franko@mail.com",
+  "displayName": "Franko",
+  "timezone": "America/New_York"
+}
