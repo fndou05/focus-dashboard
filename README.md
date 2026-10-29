@@ -1,12 +1,12 @@
 # Focus Dashboard
 
-I'm a CS student with ADHD, and staying focused and knowing where my time actually goes has always been a challenge. Most study apps either track time or track grades, but none of them connect the two, so you never find out whether the hours you put into Physics are actually paying off. Focus Dashboard is the tool I wanted for myself: you set weekly study goals for each class, run focused study sessions, and see how your logged hours stack up against those goals. Grades, GPA, and a desktop agent that keeps you off Discord are next.
+I'm a CS student with ADHD, and staying focused and knowing where my time actually goes has always been a challenge. Most study apps either track time or track grades, but none of them connect the two, so you never find out whether the hours you put into Physics are actually paying off. Focus Dashboard is the tool I wanted for myself: you set weekly study goals for each class, run focused study sessions, and see how your logged hours stack up against those goals. It also tracks grades and GPA, and a desktop agent that keeps you off Discord is next.
 
 I'm also using it to learn full-stack development the slow way, writing and understanding every line instead of generating it.
 
 ## Where it's at
 
-The backend core is done and tested. You can create a user, add semesters and classes, set weekly goals, start and end study sessions, and ask for a weekly progress report like "Physics: 4.5 of 7 hours this week." The frontend and the rest of the features are on the [roadmap](#roadmap).
+The backend is done through grades and GPA, and it's tested. You can create a user, add semesters and classes, set weekly goals, run study sessions, and get a weekly progress report like "Physics: 4.5 of 7 hours this week." You can also set up each class's weighted grade categories, log graded work, and see your current grade, semester GPA, and cumulative GPA update as you go. Login, the frontend, and the rest are on the [roadmap](#roadmap).
 
 ## How it's built
 
@@ -31,15 +31,20 @@ I wrote up the reasoning behind every major choice in [docs/decisions.md](docs/d
 ```mermaid
 erDiagram
   USERS ||--o{ SEMESTERS : has
+  USERS ||--o{ GRADE_CUTOFFS : defines
   SEMESTERS ||--o{ SUBJECTS : contains
   SUBJECTS ||--o{ WEEKLY_GOALS : has
   SUBJECTS ||--o{ STUDY_SESSIONS : "studied in"
+  SUBJECTS ||--o{ GRADE_COMPONENTS : "weighted by"
+  GRADE_COMPONENTS ||--o{ GRADE_ENTRIES : contains
 
   USERS {
     uuid id PK
     string email "unique"
     string display_name
     string timezone
+    decimal prior_credits
+    decimal prior_gpa
   }
   SEMESTERS {
     uuid id PK
@@ -54,6 +59,7 @@ erDiagram
     string name
     decimal credits
     string self_rated_strength
+    string final_letter_grade
   }
   WEEKLY_GOALS {
     uuid id PK
@@ -69,6 +75,28 @@ erDiagram
     int focused_minutes
     timestamp started_at
     timestamp ended_at
+  }
+  GRADE_COMPONENTS {
+    uuid id PK
+    uuid subject_id FK
+    string name
+    string category
+    decimal weight_percent
+  }
+  GRADE_ENTRIES {
+    uuid id PK
+    uuid component_id FK
+    string title
+    decimal score_earned
+    decimal score_possible
+    date graded_on
+  }
+  GRADE_CUTOFFS {
+    uuid id PK
+    uuid user_id FK
+    string letter
+    decimal min_percent
+    decimal grade_points
   }
 ```
 
