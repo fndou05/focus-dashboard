@@ -36,6 +36,9 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<GradeCutoff> gradeCutoffs;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Responsibility> responsibilities;
+
     public User() {}
 
     public User(String email, String displayName, String timezone) {
@@ -53,6 +56,7 @@ public class User {
     public BigDecimal getPriorGpa() { return priorGpa; }
     public List<Semester> getSemesters() { return semesters; }
     public List<GradeCutoff> getGradeCutoffs() { return gradeCutoffs; }
+    public List<Responsibility> getResponsibilities() { return responsibilities; }
 
     // Setters (no setId or setEmail: neither can change)
     public void setDisplayName(String displayName) { this.displayName = displayName; }

@@ -262,3 +262,130 @@ Content-Type: application/json
 
 ### 4.5b Subject grade again (200): letter A, points 4.00, isFinal true
 GET http://localhost:8080/subjects/{{subjectId}}/grade
+
+
+
+################ Phase 4, Step 1: responsibilities ################
+
+### P4.1 Create user (201)
+POST http://localhost:8080/users
+Content-Type: application/json
+
+{
+  "email": "p4-{{$uuid}}@mail.com",
+  "displayName": "Planner",
+  "timezone": "America/New_York"
+}
+
+> {% client.global.set("userId", response.body.id); %}
+
+### P4.1.1 Sleep 56 (201)
+POST http://localhost:8080/users/{{userId}}/responsibilities
+Content-Type: application/json
+
+{
+  "label": "Sleep",
+  "category": "SLEEP",
+  "hoursPerWeek": 56
+}
+
+> {% client.global.set("sleepId", response.body.id); %}
+
+### P4.1.2 Job 20 (201)
+POST http://localhost:8080/users/{{userId}}/responsibilities
+Content-Type: application/json
+
+{
+  "label": "Job",
+  "category": "WORK",
+  "hoursPerWeek": 20
+}
+
+### P4.1.3 Gym 5 (201)
+POST http://localhost:8080/users/{{userId}}/responsibilities
+Content-Type: application/json
+
+{
+  "label": "Gym",
+  "category": "CUSTOM",
+  "hoursPerWeek": 5
+}
+
+### P4.1.4 Temp 2 (201)
+POST http://localhost:8080/users/{{userId}}/responsibilities
+Content-Type: application/json
+
+{
+  "label": "Temp",
+  "category": "CUSTOM",
+  "hoursPerWeek": 2
+}
+
+> {% client.global.set("tempId", response.body.id); %}
+
+### P4.1.5a Zero hours (400)
+POST http://localhost:8080/users/{{userId}}/responsibilities
+Content-Type: application/json
+
+{
+  "label": "Bad",
+  "category": "CUSTOM",
+  "hoursPerWeek": 0
+}
+
+### P4.1.5b 200 hours (400)
+POST http://localhost:8080/users/{{userId}}/responsibilities
+Content-Type: application/json
+
+{
+  "label": "Bad",
+  "category": "CUSTOM",
+  "hoursPerWeek": 200
+}
+
+### P4.1.5c Unknown category (400)
+POST http://localhost:8080/users/{{userId}}/responsibilities
+Content-Type: application/json
+
+{
+  "label": "Bad",
+  "category": "NAP",
+  "hoursPerWeek": 5
+}
+
+### P4.1.5d Blank label (400)
+POST http://localhost:8080/users/{{userId}}/responsibilities
+Content-Type: application/json
+
+{
+  "label": "",
+  "category": "CUSTOM",
+  "hoursPerWeek": 5
+}
+
+### P4.1.6 Unknown user (404)
+POST http://localhost:8080/users/{{$uuid}}/responsibilities
+Content-Type: application/json
+
+{
+  "label": "Sleep",
+  "category": "SLEEP",
+  "hoursPerWeek": 56
+}
+
+### P4.1.7 List (200, 4 items)
+GET http://localhost:8080/users/{{userId}}/responsibilities
+
+### P4.1.8 Temp to 3 hours (200, label still Temp)
+PATCH http://localhost:8080/responsibilities/{{tempId}}
+Content-Type: application/json
+
+{
+  "hoursPerWeek": 3
+}
+
+### P4.1.9a Delete Temp (204)
+DELETE http://localhost:8080/responsibilities/{{tempId}}
+
+### P4.1.9b Get Temp (404)
+GET http://localhost:8080/responsibilities/{{tempId}}
