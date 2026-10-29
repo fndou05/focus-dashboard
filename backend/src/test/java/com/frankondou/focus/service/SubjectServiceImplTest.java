@@ -3,12 +3,14 @@ package com.frankondou.focus.service;
 import com.frankondou.focus.entity.Semester;
 import com.frankondou.focus.entity.Subject;
 import com.frankondou.focus.entity.User;
+import com.frankondou.focus.entity.enums.SubjectCategory;
 import com.frankondou.focus.exception.BadRequestException;
 import com.frankondou.focus.repository.GradeCutoffRepository;
 import com.frankondou.focus.repository.SemesterRepository;
 import com.frankondou.focus.repository.SubjectRepository;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -67,5 +69,47 @@ class SubjectServiceImplTest {
         Subject result = service.updateSubject(subjectId, finalGradeUpdate(""));
 
         assertNull(result.getFinalLetterGrade());
+    }
+
+    @Test
+    void updateSubject_withNoClassHours_leavesTheExistingValue() {
+        existing.setWeeklyClassHours(new BigDecimal("2"));
+        Subject updates = new Subject();
+        updates.setWeeklyClassHours(null);
+
+        Subject result = service.updateSubject(subjectId, updates);
+
+        assertEquals(new BigDecimal("2"), result.getWeeklyClassHours());
+    }
+
+    @Test
+    void updateSubject_withClassHours_setsThem() {
+        Subject updates = new Subject();
+        updates.setWeeklyClassHours(new BigDecimal("3.5"));
+
+        Subject result = service.updateSubject(subjectId, updates);
+
+        assertEquals(new BigDecimal("3.5"), result.getWeeklyClassHours());
+    }
+
+    @Test
+    void updateSubject_withNoCategory_leavesTheExistingCategory() {
+        existing.setCategory(SubjectCategory.STEM);
+        Subject updates = new Subject();
+        updates.setCategory(null);
+
+        Subject result = service.updateSubject(subjectId, updates);
+
+        assertEquals(SubjectCategory.STEM, result.getCategory());
+    }
+
+    @Test
+    void updateSubject_withCategory_setsIt() {
+        Subject updates = new Subject();
+        updates.setCategory(SubjectCategory.HEALTH);
+
+        Subject result = service.updateSubject(subjectId, updates);
+
+        assertEquals(SubjectCategory.HEALTH, result.getCategory());
     }
 }

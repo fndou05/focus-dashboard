@@ -28,6 +28,12 @@ public class SubjectController {
         subject.setName(request.name());
         subject.setCredits(request.credits());
         subject.setSelfRatedStrength(request.selfRatedStrength());
+        if (request.weeklyClassHours() != null) {
+            subject.setWeeklyClassHours(request.weeklyClassHours());
+        }
+        if (request.category() != null) {
+            subject.setCategory(request.category());
+        }
         return SubjectResponse.from(subjectService.createSubject(semesterId, subject));
     }
 
@@ -51,6 +57,9 @@ public class SubjectController {
         updates.setCredits(request.credits());
         updates.setSelfRatedStrength(request.selfRatedStrength());
         updates.setFinalLetterGrade(request.finalLetterGrade());
+        // Set even when null: a new Subject defaults to 0 and OTHER, so null is how the service sees "not sent"
+        updates.setWeeklyClassHours(request.weeklyClassHours());
+        updates.setCategory(request.category());
         return SubjectResponse.from(subjectService.updateSubject(id, updates));
     }
 

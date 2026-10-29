@@ -389,3 +389,102 @@ DELETE http://localhost:8080/responsibilities/{{tempId}}
 
 ### P4.1.9b Get Temp (404)
 GET http://localhost:8080/responsibilities/{{tempId}}
+
+
+
+################ Phase 4, Step 2: class hours and class category ################
+
+### P4.2.0 Create semester that includes today (201)
+POST http://localhost:8080/users/{{userId}}/semesters
+Content-Type: application/json
+
+{
+  "name": "Fall 2026",
+  "startDate": "2026-09-01",
+  "endDate": "2026-12-20"
+}
+
+> {% client.global.set("semesterId", response.body.id); %}
+
+### P4.2.1 Physics, STEM, 3.5 class hours (201, shows 3.5)
+POST http://localhost:8080/semesters/{{semesterId}}/subjects
+Content-Type: application/json
+
+{
+  "name": "Physics",
+  "credits": 4,
+  "selfRatedStrength": "AVERAGE",
+  "weeklyClassHours": 3.5,
+  "category": "STEM"
+}
+
+> {% client.global.set("physicsId", response.body.id); %}
+
+### P4.2.2 Calc 3, WEAK, no hours or category (201, shows 0 and OTHER)
+POST http://localhost:8080/semesters/{{semesterId}}/subjects
+Content-Type: application/json
+
+{
+  "name": "Calc 3",
+  "credits": 3,
+  "selfRatedStrength": "WEAK"
+}
+
+> {% client.global.set("calcId", response.body.id); %}
+
+### P4.2.3 Calc 3 to 3 class hours (200, shows 3)
+PATCH http://localhost:8080/subjects/{{calcId}}
+Content-Type: application/json
+
+{
+  "weeklyClassHours": 3
+}
+
+### P4.2.4 Rename only (200, hours still 3)
+PATCH http://localhost:8080/subjects/{{calcId}}
+Content-Type: application/json
+
+{
+  "name": "Calculus 3"
+}
+
+### P4.2.5 Calc 3 is STEM (200)
+PATCH http://localhost:8080/subjects/{{calcId}}
+Content-Type: application/json
+
+{
+  "category": "STEM"
+}
+
+### P4.2.6a Negative hours (400)
+PATCH http://localhost:8080/subjects/{{calcId}}
+Content-Type: application/json
+
+{
+  "weeklyClassHours": -1
+}
+
+### P4.2.6b 200 hours (400)
+PATCH http://localhost:8080/subjects/{{calcId}}
+Content-Type: application/json
+
+{
+  "weeklyClassHours": 200
+}
+
+### P4.2.6c Unknown category (400)
+PATCH http://localhost:8080/subjects/{{calcId}}
+Content-Type: application/json
+
+{
+  "category": "BASKET_WEAVING"
+}
+
+### P4.2.7 Physics weekly goal of 6 hours (201)
+POST http://localhost:8080/subjects/{{physicsId}}/weekly-goals
+Content-Type: application/json
+
+{
+  "targetHours": 6,
+  "effectiveFrom": "2026-09-01"
+}

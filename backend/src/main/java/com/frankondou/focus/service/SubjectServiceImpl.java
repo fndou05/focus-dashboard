@@ -69,6 +69,14 @@ public class SubjectServiceImpl implements SubjectService {
             existing.setSelfRatedStrength(updates.getSelfRatedStrength());
         }
 
+        if (updates.getWeeklyClassHours() != null) {
+            existing.setWeeklyClassHours(updates.getWeeklyClassHours());
+        }
+
+        if (updates.getCategory() != null) {
+            existing.setCategory(updates.getCategory());
+        }
+
         applyFinalLetterGrade(existing, updates.getFinalLetterGrade());
 
         return subjectRepository.save(existing);

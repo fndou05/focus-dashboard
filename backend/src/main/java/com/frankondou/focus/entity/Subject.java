@@ -1,6 +1,7 @@
 package com.frankondou.focus.entity;
 
 import com.frankondou.focus.entity.enums.StrengthRating;
+import com.frankondou.focus.entity.enums.SubjectCategory;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -28,6 +29,15 @@ public class Subject {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private StrengthRating selfRatedStrength;
+
+    // Default of 0 for subjects created without hours
+    @Column(nullable = false)
+    private BigDecimal weeklyClassHours = BigDecimal.ZERO;
+
+    // Drives the recommended study time; OTHER until the student picks one
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private SubjectCategory category = SubjectCategory.OTHER;
 
     // Empty until the semester ends; overrides the calculated grade
     @Column(length = 2)
@@ -58,6 +68,8 @@ public class Subject {
     public BigDecimal getCredits() { return credits; }
     public StrengthRating getSelfRatedStrength() { return selfRatedStrength; }
     public String getFinalLetterGrade() { return finalLetterGrade; }
+    public BigDecimal getWeeklyClassHours() { return weeklyClassHours; }
+    public SubjectCategory getCategory() { return category; }
     public List<WeeklyGoal> getWeeklyGoals() { return weeklyGoals; }
     public List<StudySession> getStudySessions() { return studySessions; }
     public List<GradeComponent> getGradeComponents() { return gradeComponents; }
@@ -68,5 +80,7 @@ public class Subject {
     public void setCredits(BigDecimal credits) { this.credits = credits; }
     public void setSelfRatedStrength(StrengthRating selfRatedStrength) { this.selfRatedStrength = selfRatedStrength; }
     public void setFinalLetterGrade(String finalLetterGrade) { this.finalLetterGrade = finalLetterGrade; }
+    public void setWeeklyClassHours(BigDecimal weeklyClassHours) { this.weeklyClassHours = weeklyClassHours; }
+    public void setCategory(SubjectCategory category) { this.category = category; }
     public void setWeeklyGoals(List<WeeklyGoal> weeklyGoals) { this.weeklyGoals = weeklyGoals; }
 }
